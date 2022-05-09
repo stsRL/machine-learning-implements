@@ -1,0 +1,90 @@
+import torch 
+from torch import nn
+
+
+class VGG13(nn.Module):
+    def __init__(self):
+        super(VGG13,self).__init__()
+
+        self.layer1=nn.Sequential(
+            nn.Conv2d(in_channels=3,out_channels=64,kernel_size=3,stride=1,padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=64,out_channels=64,kernel_size=3,stride=1,padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2,stride=2)
+        )
+
+        self.layer2=nn.Sequential(
+            nn.Conv2d(in_channels=64,out_channels=128,kernel_size=3,stride=1,padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=128,out_channels=128,kernel_size=3,stride=1,padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2,stride=2)
+        )
+
+        self.layer3=nn.Sequential(
+            nn.Conv2d(in_channels=128,out_channels=256,kernel_size=3,stride=1,padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=256,out_channels=256,kernel_size=3,stride=1,padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2,stride=2)
+        )
+
+        self.layer4=nn.Sequential(
+            nn.Conv2d(in_channels=256,out_channels=512,kernel_size=3,stride=1,padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=512,out_channels=512,kernel_size=3,stride=1,padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2,stride=2)
+        )
+
+        self.layer5=nn.Sequential(
+            nn.Conv2d(in_channels=512,out_channels=512,kernel_size=3,stride=1,padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=512,out_channels=512,kernel_size=3,stride=1,padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2,stride=2)
+        )
+
+        self.conv=nn.Sequential(
+            self.layer1,
+            self.layer2,
+            self.layer3,
+            self.layer4,
+            self.layer5
+        )
+
+        self.classify=nn.Sequential(
+            nn.Linear(512*7*7,4096),
+            nn.ReLU(inplace=True),
+            nn.Dropout(p=0.5),
+
+            nn.Linear(4096,4096),
+            nn.ReLU(inplace=True),
+            nn.Dropout(p=0.5),
+
+            nn.Linear(4096,10)
+        )
+    
+    def forward(self,x):
+        x=self.conv(x)
+        x=x.view(-1,25088)
+        x=self.classify(x)
+        return x
+
+
+if __name__=="__main__":
+    x=torch.rand(size=(128,3,224,224))
+    vgg13=VGG13()
+    x=vgg13(x)
+    print(x.shape)
